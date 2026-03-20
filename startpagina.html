@@ -1,0 +1,269 @@
+
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Startpagina – v4.2.2.1</title>
+<style>
+  :root{--grad-light-1:#667eea;--grad-light-2:#764ba2;--grad-dark-1:#2b2b3b;--grad-dark-2:#463d55;--text-light:#fff;--text-dark:#f0f0f0}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{height:100vh;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,sans-serif;background:linear-gradient(135deg,var(--grad-light-1),var(--grad-light-2));color:var(--text-light);padding:20px}
+  body.dark{background:linear-gradient(135deg,var(--grad-dark-1),var(--grad-dark-2));color:var(--text-dark)}
+  .container{height:calc(100vh - 40px);display:flex;flex-direction:column;overflow:hidden;width:100%;max-width:980px;margin:0 auto}
+  .glass{background:rgba(255,255,255,.15);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.2);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.12)}
+  body.dark .glass{background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.18)}
+  .left-column{position:fixed;top:20px;left:20px;width:220px;display:flex;flex-direction:column;gap:8px;z-index:150}
+  .left-column .schedule{position:static!important;max-width:220px!important;width:100%;padding:8px 10px;font-size:14px;line-height:1.35}
+  .left-column .rooster-control{position:static!important;width:100%;padding:6px 10px;font-size:13px;display:flex;align-items:center;gap:8px}
+  .rooster-control select{appearance:none;-webkit-appearance:none;background:rgba(255,255,255,.9);border:none;border-radius:8px;padding:6px 10px;font-size:13px;color:#222;cursor:pointer}
+  .schedule-title{font-weight:600;margin-bottom:4px;font-size:15px}
+  .schedule-item{display:flex;justify-content:space-between;gap:8px;padding:2px 4px;border-radius:5px;transition:.25s}
+  .schedule-item.break{color:rgba(255,255,255,.9);font-style:italic}
+  .schedule-item.current{background:rgba(144,238,144,.30);font-weight:700}
+  .schedule-muted{opacity:.55;filter:grayscale(.25)}
+  #schedule{order:1}#schedule40{order:2}#roosterControl{order:3}
+  body.forty-on #schedule{order:2}body.forty-on #schedule40{order:1}
+  .right-column{position:fixed;top:20px;right:20px;width:220px;display:flex;flex-direction:column;gap:12px;z-index:200}
+  .right-column .weather-widget,.right-column .announcement-widget{position:static!important;width:100%;max-width:220px!important}
+  .weather-widget{padding:18px 20px}.weather-title{font-weight:600;margin-bottom:8px;font-size:16px;display:flex;align-items:center;gap:8px}
+  .weather-icon{width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center}
+  .rain-info{font-size:13px;margin-bottom:8px;opacity:.9;line-height:1.3;white-space:pre-line}
+  .weather-temp{font-size:44px;font-weight:300;margin-bottom:4px}
+  .weather-desc{font-size:15px;opacity:.95;margin-bottom:8px}
+  .weather-details{font-size:14px;opacity:.9;display:flex;justify-content:space-between}
+  .announcement-widget{padding:14px 20px}.announcement-title{font-weight:600;margin-bottom:6px;font-size:16px}
+  .announcement-list{list-style:none;display:grid;gap:8px;margin-bottom:8px}
+  .announcement-item{font-size:14px;line-height:1.35;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:8px 10px}
+  .announcement-item time{opacity:.85;font-size:12px;display:block;margin-top:4px}
+  .archive-toggle{display:inline-flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;user-select:none;opacity:.95}
+  .archive-container{display:none;margin-top:8px}
+  .time-display{text-align:center;margin:0 0 16px}.time{font-size:72px;font-weight:300;letter-spacing:-2px;text-shadow:0 4px 20px rgba(0,0,0,.2)}.date{font-size:21.5px;margin-top:8px;opacity:.95;font-weight:300}
+  .search-box{margin:16px 0 20px}.search-container{position:relative;max-width:640px;margin:0 auto}
+  .search-input{width:100%;padding:18px 50px 18px 22px;font-size:16px;border:none;border-radius:50px;outline:none;background:rgba(255,255,255,.95);color:#222;box-shadow:0 8px 32px rgba(0,0,0,.12);transition:.25s}
+  body.dark .search-input{background:rgba(255,255,255,.10);color:#eee}
+  .search-input:focus{background:#fff;transform:translateY(-1px);box-shadow:0 12px 48px rgba(0,0,0,.18)}
+  body.dark .search-input:focus{background:rgba(255,255,255,.14)}
+  .search-button{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:none;width:40px;height:40px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#667eea,#764ba2);box-shadow:0 4px 12px rgba(0,0,0,.2)}
+  .search-button svg{width:18px;height:18px;fill:#e6e6e6}
+  .search-button:hover{transform:translateY(-50%) scale(1.06)}
+  .pages-wrapper{position:relative;width:100%;overflow:hidden;flex:1}
+  .pages-track{display:flex;transition:transform .4s cubic-bezier(.4,0,.2,1);height:100%}
+  .page{min-width:100%;display:flex;flex-wrap:wrap;justify-content:center;gap:12px;align-content:start;padding:4px 2px}
+  .page-nav{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:0;user-select:none}
+  .page-arrow{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:50%;width:34px;height:34px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.2s}
+  .page-arrow:hover{background:rgba(255,255,255,.32)}
+  .page-arrow:disabled{opacity:.25;cursor:default}
+  .page-dots{display:flex;gap:10px;align-items:center}
+  .page-dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.35);border:1px solid rgba(255,255,255,.4);cursor:pointer;transition:.2s}
+  .page-dot.active{background:#fff;transform:scale(1.2)}
+  .page-label{font-size:13px;font-weight:600;opacity:.85;letter-spacing:.5px;min-width:70px;text-align:center}
+  .tiles-grid{display:grid;grid-template-columns:repeat(5,minmax(110px,1fr));gap:12px;max-width:900px;margin:0 auto}
+  .tile{color:#fff;text-decoration:none;border-radius:12px;padding:16px 12px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-weight:600;transition:.25s;box-shadow:0 8px 22px rgba(0,0,0,.18);width:130px;height:90px}
+  .tile:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(0,0,0,.24);filter:brightness(1.04)}
+  .tile span{font-weight:500;opacity:.92;margin-top:4px;font-size:13.5px}
+  .t-purple{background:#6c5ce7}.t-orange{background:#e67e22}.t-green{background:#27ae60}.t-violet{background:#8e44ad}.t-red{background:#c0392b}.t-blue{background:#2980b9}.t-teal{background:#16a085}.t-pink{background:#d2527f}.t-gray{background:#7f8c8d}.t-gold{background:#b8860b}
+  body.dark .tile{filter:brightness(.9)}
+  @media (max-width:768px){body{overflow:auto}.time{font-size:56px}.tiles-grid{grid-template-columns:repeat(auto-fill,minmax(100px,1fr))}.left-column,.right-column{position:static;width:auto;margin-bottom:12px}}
+</style>
+</head>
+<body>
+  <div class="left-column">
+    <aside class="schedule glass" id="schedule">
+      <div class="schedule-title">Lestijden</div>
+      <div class="schedule-item" data-start="08:25" data-end="09:15"><span class="schedule-label">1e uur</span><span>08:25 – 09:15</span></div>
+      <div class="schedule-item" data-start="09:15" data-end="10:05"><span class="schedule-label">2e uur</span><span>09:15 – 10:05</span></div>
+      <div class="schedule-item break" data-start="10:05" data-end="10:20"><span class="schedule-label">Pauze</span><span>10:05 – 10:20</span></div>
+      <div class="schedule-item" data-start="10:20" data-end="11:10"><span class="schedule-label">3e uur</span><span>10:20 – 11:10</span></div>
+      <div class="schedule-item" data-start="11:10" data-end="12:00"><span class="schedule-label">4e uur</span><span>11:10 – 12:00</span></div>
+      <div class="schedule-item break" data-start="12:00" data-end="12:30"><span class="schedule-label">Lunch</span><span>12:00 – 12:30</span></div>
+      <div class="schedule-item" data-start="12:30" data-end="13:20"><span class="schedule-label">5e uur</span><span>12:30 – 13:20</span></div>
+      <div class="schedule-item" data-start="13:20" data-end="14:10"><span class="schedule-label">6e uur</span><span>13:20 – 14:10</span></div>
+      <div class="schedule-item break" data-start="14:10" data-end="14:20"><span class="schedule-label">7e uur</span><span>14:10 – 14:20</span></div>
+      <div class="schedule-item" data-start="14:20" data-end="15:10"><span class="schedule-label">8e uur</span><span>14:20 – 15:10</span></div>
+      <div class="schedule-item" data-start="15:10" data-end="16:00"><span class="schedule-label">9e uur</span><span>15:10 – 16:00</span></div>
+    </aside>
+
+    <aside class="schedule glass" id="schedule40" aria-labelledby="titel-40">
+      <div class="schedule-title" id="titel-40">40‑minutenrooster</div>
+      <div class="schedule-item" data-start="08:25" data-end="09:05"><span class="schedule-label">1e uur</span><span>08:25 – 09:05</span></div>
+      <div class="schedule-item" data-start="09:05" data-end="09:45"><span class="schedule-label">2e uur</span><span>09:05 – 09:45</span></div>
+      <div class="schedule-item" data-start="09:45" data-end="10:25"><span class="schedule-label">3e uur</span><span>09:45 – 10:25</span></div>
+      <div class="schedule-item break" data-start="10:25" data-end="10:40"><span class="schedule-label">Pauze</span><span>10:25 – 10:40</span></div>
+      <div class="schedule-item" data-start="10:40" data-end="11:20"><span class="schedule-label">4e uur</span><span>10:40 – 11:20</span></div>
+      <div class="schedule-item" data-start="11:20" data-end="12:00"><span class="schedule-label">Lunch</span><span>11:20 – 12:00</span></div>
+      <div class="schedule-item" data-start="12:00" data-end="12:40"><span class="schedule-label">5e uur</span><span>12:00 – 12:40</span></div>
+      <div class="schedule-item break" data-start="12:40" data-end="13:10"><span class="schedule-label">6e uur</span><span>12:40 – 13:10</span></div>
+      <div class="schedule-item" data-start="13:10" data-end="13:50"><span class="schedule-label">7e uur</span><span>13:10 – 13:50</span></div>
+      <div class="schedule-item" data-start="13:50" data-end="14:30"><span class="schedule-label">8e uur</span><span>13:50 – 14:30</span></div>
+      <div class="schedule-item" data-start="14:30" data-end="15:10"><span class="schedule-label">9e uur</span><span>14:30 – 15:10</span></div>
+    </aside>
+    
+  </div>
+
+  <div class="right-column">
+    <aside class="weather-widget glass" id="weather">
+      <div class="weather-title"><span class="weather-icon" id="weatherIcon">☁️</span> <span id="weatherPlace">Den Helder</span></div>
+      <div class="rain-info" id="rainInfo">Weerbericht laden…</div>
+      <div class="weather-temp" id="weatherTemp">--°</div>
+      <div class="weather-desc" id="weatherDesc">Laden...</div>
+      <div class="weather-details"><span id="weatherWind">Wind: --</span><span id="weatherHumidity">Vocht: --%</span></div>
+    </aside>
+
+    <aside class="announcement-widget glass" id="announcement">
+      <div class="announcement-title">📣 Mededelingen</div>
+      <ul class="announcement-list" id="announcementList"></ul>
+      <div class="archive-toggle" id="archiveToggle">Toon archief ▼</div>
+      <div class="archive-container" id="archiveContainer">
+        <ul class="announcement-list" id="announcementArchive"></ul>
+      </div>
+    </aside>
+		
+	<div class="rooster-control glass" id="roosterControl" title="Kies rooster-modus">
+      <aside><span>Rooster:</span>
+      <select id="fortyMode">
+        <option value="auto">Auto</option>
+        <option value="on">40-min</option>
+        <option value="off">Normaal</option>
+      </select>
+	 </aside>
+    </div>
+
+  </div>
+
+  <main class="container">
+    <div class="time-display"><div class="time" id="time"></div><div class="date" id="date"></div></div>
+
+    <div class="search-box">
+      <div class="search-container">
+        <input type="text" class="search-input" id="searchInput" placeholder="Zoeken op Google..." />
+        <button class="search-button" id="searchButton" aria-label="Zoeken" title="Zoeken">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79L20 21.5 21.5 20l-6-6zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="pages-wrapper">
+      <div class="pages-track" id="pagesTrack">
+
+        <!-- Pagina 1: School -->
+        <div class="page" id="page-0">
+          <!-- Voeg hier School-snelkoppelingen toe -->
+		  <a href="https://ja.magister.net" class="tile t-purple" target="_blank" rel="noopener noreferrer"> Magister <span>Cijfers</span></a>
+          <a href="https://portaal.ja.nl" class="tile t-gray" target="_blank" rel="noopener noreferrer"> JA <span>Portaal</span></a>
+          <a href="https://janarentsz.sharepoint.com/sites/Data/VMBO/Forms/AllItems.aspx" class="tile t-blue" target="_blank" rel="noopener noreferrer"> JA  <span>sharepoint</span></a>
+          <a href="https://janarentsz.sharepoint.com/sites/Data/ICT/Forms/AllItems.aspx?e=5%3A50bcc4ba192647a1b8787263d0ecf25b&sharingv2=true&fromShare=true&at=9&CID=c4a586cf%2D7cd4%2D4804%2Dae1a%2D72e548c2a3ab&FolderCTID=0x0120006E3F118847A27142B1FEEE3152A2E070&id=%2Fsites%2FData%2FICT%2F1%2E%20Apps%2F2%2E%20Eigen%20Progs%2FSchermenPowerpoints" class="tile t-teal" target="_blank" rel="noopener noreferrer"> JA <span>schermen</span></a>
+          <a href="https://www.lessonup.com/app/explorer/lessons" class="tile t-gray" target="_blank" rel="noopener noreferrer"> LessonUp <span>interactieve lessen</span></a>
+		  <a href="https://outlook.office.com" class="tile t-gray" target="_blank" rel="noopener noreferrer"> JA <span>email</span></a>
+        </div>
+        <!-- Pagina 2: AI Tools -->
+        <div class="page" id="page-1">
+          <a href="https://chatgpt.com" class="tile t-purple" target="_blank" rel="noopener noreferrer">💬 ChatGPT<span>Algemeen</span></a>
+          <a href="https://x.ai" class="tile t-gray" target="_blank" rel="noopener noreferrer">🤖 Grok<span>Algemeen (X)</span></a>
+          <a href="https://chat.deepseek.com" class="tile t-blue" target="_blank" rel="noopener noreferrer">🔎 DeepSeek<span>Algemeen</span></a>
+          <a href="https://chat.mistral.ai" class="tile t-teal" target="_blank" rel="noopener noreferrer">🌪️ Mistral<span>Algemeen (Frans)</span></a>
+          <a href="https://www.genspark.ai" class="tile t-gold" target="_blank" rel="noopener noreferrer">✨ GenSpark<span>Algemeen + Foto's + Docs</span></a>
+          <a href="https://claude.ai" class="tile t-pink" target="_blank" rel="noopener noreferrer">🧠 Claude<span>Coderen + Word/PowerPoint</span></a>
+          <a href="https://nanobanana.ai" class="tile t-green" target="_blank" rel="noopener noreferrer">🍌 Nanobanana<span>Foto's</span></a>
+          <a href="https://www.codevibe.ai" class="tile t-orange" target="_blank" rel="noopener noreferrer">💻 CodeVibe<span>Coderen</span></a>
+          <a href="https://notebooklm.google.com" class="tile t-violet" target="_blank" rel="noopener noreferrer">📓 NotebookLM<span>Conversatie + Pdf</span></a>
+          <a href="https://elevenlabs.io" class="tile t-red" target="_blank" rel="noopener noreferrer">🎙️ ElevenLabs<span>Conversatie + Audio</span></a>
+          <a href="https://learnyourway.withgoogle.com" class="tile t-blue" target="_blank" rel="noopener noreferrer">📚 Learn Your Way<span>Voorlezen Tekst/Foto</span></a>
+          <a href="https://www.aivoorleerlingen.nl" class="tile t-teal" target="_blank" rel="noopener noreferrer">🎓 AI voor leerlingen</a>
+          <a href="https://www.aivoordocenten.nl" class="tile t-purple" target="_blank" rel="noopener noreferrer">👩‍🏫 AI voor docenten</a>
+          <a href="https://www.impulselabs.ai" class="tile t-green" target="_blank" rel="noopener noreferrer">⚡ Impuls AI<span>Educatief</span></a>
+		  <a href="https://course.elementsofai.com/nl/" class="tile t-gray" target="_blank" rel="noopener noreferrer"> Elements of AI<span>AI cursus systeem</span></a>  
+		  
+        </div>
+
+        <!-- Pagina 3: Creatief -->
+        <div class="page" id="page-2">
+          <!-- Voeg hier Creatief-snelkoppelingen toe -->
+        </div>
+
+      </div>
+    </div>
+
+    <nav class="page-nav" id="pageNav">
+      <button class="page-arrow" id="prevBtn" aria-label="Vorige pagina" disabled>&#8592;</button>
+      <div class="page-dots" id="pageDots"></div>
+      <button class="page-arrow" id="nextBtn" aria-label="Volgende pagina">&#8594;</button>
+    </nav>
+  </main>
+
+<script>
+const defaultConfig={mode:'auto',fortyMinWeekdays:[],fortyMinDates:[]};
+async function getThemePref(){const ls=localStorage.getItem('theme');if(ls) return ls;const cfg=await loadJson('theme_config.json');if(cfg&&cfg.theme) return cfg.theme;return 'system'}
+function applyTheme(theme){const mq=window.matchMedia('(prefers-color-scheme: dark)');const set=()=>{const dark=(theme==='dark')||(theme==='system'&&mq.matches);document.body.classList.toggle('dark',dark)};set();if(applyTheme._bound) return;mq.addEventListener('change',()=>{if((localStorage.getItem('theme')||'system')==='system') set()});applyTheme._bound=true}
+function updateTime(){const now=new Date();document.getElementById('time').textContent=now.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'});document.getElementById('date').textContent=now.toLocaleDateString('nl-NL',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}
+function updateScheduleHighlight(scope){const now=new Date();const t=now.getHours()*60+now.getMinutes();document.querySelectorAll(scope+' .schedule-item').forEach(it=>{const s=it.getAttribute('data-start');const e=it.getAttribute('data-end');if(!s||!e) return;const[sh,sm]=s.split(':').map(Number);const[eh,em]=e.split(':').map(Number);const S=sh*60+sm,E=eh*60+em;it.classList.toggle('current',t>=S&&t<E)})}
+let appConfig={...defaultConfig};
+function computeAutoForty(d=new Date()){const iso=d.toISOString().slice(0,10);const wd=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()];return (appConfig.fortyMinDates||[]).includes(iso)||(appConfig.fortyMinWeekdays||[]).includes(wd)}
+function currentFortyState(){const o=localStorage.getItem('fortyOverride');if(o==='on') return true;if(o==='off') return false;const m=appConfig.mode||'auto';if(m==='on') return true;if(m==='off') return false;return computeAutoForty()}
+function applyFortyLayout(){const is40=currentFortyState();document.body.classList.toggle('forty-on',is40);const reg=document.getElementById('schedule');const m40=document.getElementById('schedule40');if(is40){reg.classList.add('schedule-muted');m40.classList.remove('schedule-muted')}else{m40.classList.add('schedule-muted');reg.classList.remove('schedule-muted')}updateScheduleHighlight('#schedule');updateScheduleHighlight('#schedule40')}
+const _embeddedJson={
+  'weer_config.json':{"location":"Den Helder"},
+  'theme_config.json':{"theme":"dark"},
+  'rooster_config.json':{"mode":"auto","fortyMinWeekdays":[],"fortyMinDates":[]},
+  'mededeling.json':{"messages":[{"text":"let op: Maandag toetsweek","ts":"2026-03-20T13:49:03.565Z"},{"text":"Let op het inleveren van je PWS verslag","ts":"2026-03-20T11:15:00.377Z"}]}
+};
+async function loadJson(url){const key=Object.keys(_embeddedJson).find(k=>url.includes(k));try{const r=await fetch(url+(url.includes('?')?'&':'?')+'ts='+Date.now());if(r.ok) return await r.json()}catch(e){}if(key) return _embeddedJson[key];return null}
+async function getWeatherLocation(){const ls=localStorage.getItem('weatherLocation');if(ls) return ls;const cfg=await loadJson('weer_config.json');if(cfg&&cfg.location) return cfg.location;return 'Meppel'}
+function mapWeatherCode(code){const c=Number(code);if([0].includes(c)) return {icon:'☀️',desc:'Helder'};if([1].includes(c)) return {icon:'🌤️',desc:'Overwegend helder'};if([2].includes(c)) return {icon:'⛅',desc:'Gedeeltelijk bewolkt'};if([3].includes(c)) return {icon:'☁️',desc:'Bewolkt'};if([45,48].includes(c)) return {icon:'🌫️',desc:'Mist'};if([51,53,55].includes(c)) return {icon:'🌦️',desc:'Motregen'};if([56,57].includes(c)) return {icon:'🌧️',desc:'Ijzel/motregen'};if([61,63,65].includes(c)) return {icon:'🌧️',desc:'Regen'};if([66,67].includes(c)) return {icon:'🌧️',desc:'Ijzel'};if([71,73,75].includes(c)) return {icon:'🌨️',desc:'Sneeuw'};if([77].includes(c)) return {icon:'❄️',desc:'Sneeuwkorrels'};if([80,81,82].includes(c)) return {icon:'🌦️',desc:'Buien'};if([85,86].includes(c)) return {icon:'🌨️',desc:'Sneeuwbuien'};if([95].includes(c)) return {icon:'⛈️',desc:'Onweer'};if([96,99].includes(c)) return {icon:'⛈️',desc:'Onweer met hagel'};return {icon:'❔',desc:'Onbekend'}}
+function findNextHourlyProb(hourly){try{const times=hourly&&hourly.time;const probs=hourly&&hourly.precipitation_probability;if(!times||!probs) return {next:null,avg2:null};const now=Date.now();let idx=times.findIndex(t=>new Date(t).getTime()>now);if(idx<0) idx=probs.length-1;const n1=(probs[idx]!==undefined?Number(probs[idx]):null);const n2=(probs[idx+1]!==undefined?Number(probs[idx+1]):null);const avg2=(n1!=null&&n2!=null)?Math.round((n1+n2)/2):(n1!=null?n1:null);return {next:n1,avg2:avg2}}catch(e){return {next:null,avg2:null}}}
+async function updateWeather(){const place=await getWeatherLocation();document.getElementById('weatherPlace').textContent=place;try{const gUrl=`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(place)}&count=1&language=nl&format=json`;const gRes=await fetch(gUrl);if(!gRes.ok) throw new Error('Geocoding mislukt');const gData=await gRes.json();if(!gData.results||!gData.results.length) throw new Error('Geen coördinaten');const {latitude,longitude,name}=gData.results[0];if(name) document.getElementById('weatherPlace').textContent=name;const wUrl=`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code&hourly=precipitation_probability&timezone=auto&language=nl`;const wRes=await fetch(wUrl);if(!wRes.ok) throw new Error('Weer ophalen mislukt');const wData=await wRes.json();const cur=wData.current;if(!cur) throw new Error('Geen current weather');const temp=Math.round(cur.temperature_2m);const wind=Math.round(cur.wind_speed_10m);const hum=Math.round(cur.relative_humidity_2m);const code=cur.weather_code;const mapped=mapWeatherCode(code);document.getElementById('weatherTemp').textContent=`${temp}°C`;document.getElementById('weatherDesc').textContent=mapped.desc;document.getElementById('weatherWind').textContent=`Wind: ${wind} km/u`;document.getElementById('weatherHumidity').textContent=`Vocht: ${hum}%`;document.getElementById('weatherIcon').textContent=mapped.icon;const probs=findNextHourlyProb(wData.hourly);const lines=[];if(probs.next!=null) lines.push(`☔ Volgend uur: ${probs.next}% kans op regen`);if(probs.avg2!=null) lines.push(`☔ Komende 2 uur: ${probs.avg2}% kans`);document.getElementById('rainInfo').textContent=lines.join('\n')}catch(e){console.error('Weer (Open-Meteo) fout:',e);document.getElementById('weatherDesc').textContent='Niet beschikbaar';document.getElementById('weatherIcon').textContent='❔'}}
+function nlList(list){return (list||[]).filter(x=>x&&x.text).sort((a,b)=>new Date(b.ts||0)-new Date(a.ts||0))}
+function getLocalAnnouncements(){try{return JSON.parse(localStorage.getItem('mededelingList')||'[]')}catch{return[]}}
+function saveLocalAnnouncements(list){localStorage.setItem('mededelingList',JSON.stringify(list||[]))}
+async function loadAnnouncements(){let list=[];const j=await loadJson('mededeling.json');if(j){if(Array.isArray(j.messages)) list=j.messages.map(m=>({text:m.text||m.message||'',ts:m.ts||m.date||null}));else if(typeof j.message==='string'&&j.message.trim()) list=[{text:j.message.trim(),ts:new Date().toISOString()}]}if(!list.length) list=getLocalAnnouncements();return nlList(list)}
+function renderAnnouncements(list){const ul=document.getElementById('announcementList');const arc=document.getElementById('announcementArchive');ul.innerHTML='';arc.innerHTML='';const top=list.slice(0,3);const rest=list.slice(3);const addTo=(el,items)=>{if(!items.length){const li=document.createElement('li');li.className='announcement-item';li.textContent='Geen mededelingen.';el.appendChild(li);return}items.forEach(it=>{const li=document.createElement('li');li.className='announcement-item';const txt=document.createElement('div');txt.textContent=it.text;const tm=document.createElement('time');tm.textContent=it.ts? new Date(it.ts).toLocaleString('nl-NL',{weekday:'short',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) :'';li.appendChild(txt);if(tm.textContent) li.appendChild(tm);el.appendChild(li)})};addTo(ul,top);if(rest.length) addTo(arc,rest)}
+function performSearch(){const q=document.getElementById('searchInput').value;if(q.trim()) window.open('https://www.google.com/search?q='+encodeURIComponent(q),'_blank')}
+
+document.getElementById('searchButton').addEventListener('click',performSearch);
+document.getElementById('searchInput').addEventListener('keypress',e=>{if(e.key==='Enter') performSearch()});
+document.getElementById('fortyMode').addEventListener('change',e=>{const v=e.target.value;if(v==='auto') localStorage.removeItem('fortyOverride'); else localStorage.setItem('fortyOverride',v);applyFortyLayout()});
+const archiveToggle=document.getElementById('archiveToggle');const archiveContainer=document.getElementById('archiveContainer');archiveToggle.addEventListener('click',()=>{const open=archiveContainer.style.display==='block';archiveContainer.style.display=open?'none':'block';archiveToggle.textContent=open?'Toon archief ▼':'Verberg archief ▲'});
+
+
+    // Carousel
+    const pages=['School','AI Tools','Creatief'];
+    let currentPage=0;
+    const track=document.getElementById('pagesTrack');
+    const dotsEl=document.getElementById('pageDots');
+    const prevBtn=document.getElementById('prevBtn');
+    const nextBtn=document.getElementById('nextBtn');
+
+    function buildDots(){
+      dotsEl.innerHTML='';
+      pages.forEach((label,i)=>{
+        const dot=document.createElement('span');
+        dot.className='page-dot'+(i===currentPage?' active':'');
+        dot.title=label;
+        dot.addEventListener('click',()=>goTo(i));
+        dotsEl.appendChild(dot);
+      });
+      const lbl=document.createElement('span');
+      lbl.className='page-label';
+      lbl.id='pageLabel';
+      lbl.textContent=pages[currentPage];
+      dotsEl.parentNode.insertBefore(lbl,dotsEl);
+    }
+    function updateDots(){
+      dotsEl.querySelectorAll('.page-dot').forEach((d,i)=>d.classList.toggle('active',i===currentPage));
+      const lbl=document.getElementById('pageLabel');
+      if(lbl) lbl.textContent=pages[currentPage];
+      prevBtn.disabled=currentPage===0;
+      nextBtn.disabled=currentPage===pages.length-1;
+    }
+    function goTo(idx){currentPage=Math.max(0,Math.min(pages.length-1,idx));track.style.transform=`translateX(-${currentPage*100}%)`;updateDots()}
+    prevBtn.addEventListener('click',()=>goTo(currentPage-1));
+    nextBtn.addEventListener('click',()=>goTo(currentPage+1));
+    document.addEventListener('keydown',e=>{if(e.key==='ArrowLeft') goTo(currentPage-1);if(e.key==='ArrowRight') goTo(currentPage+1)});
+    buildDots();
+    goTo(1);
+
+async function boot(){applyTheme(await getThemePref());updateTime();setInterval(updateTime,1000);const cfg=await loadJson('rooster_config.json');if(cfg) appConfig={...defaultConfig,...cfg};applyFortyLayout();await updateWeather();setInterval(updateWeather,600000);const list=await loadAnnouncements();saveLocalAnnouncements(list);renderAnnouncements(list);setInterval(async()=>{const l=await loadAnnouncements();renderAnnouncements(l)},60000)}
+boot();
+</script>
+</body>
+</html>

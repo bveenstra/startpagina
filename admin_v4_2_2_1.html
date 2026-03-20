@@ -1,0 +1,158 @@
+
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Admin – v4.2.2.1</title>
+<style>
+  :root{--bg1:#667eea;--bg2:#764ba2;--glass-bg:rgba(255,255,255,.15);--glass-bd:rgba(255,255,255,.22)}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,sans-serif;background:linear-gradient(135deg,var(--bg1),var(--bg2));color:#fff;min-height:100vh;padding:20px}
+  .wrap{max-width:980px;margin:0 auto;display:grid;gap:16px}
+  .glass{background:var(--glass-bg);backdrop-filter:blur(10px);border:1px solid var(--glass-bd);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.12)}
+  h1{font-weight:600;margin:0 0 8px}h2{font-weight:600;margin:12px 0 8px;font-size:18px}p{opacity:.95}
+  .login{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--bg1),var(--bg2));z-index:1000}
+  .login .card{width:360px;max-width:92%;padding:18px}
+  .pin-input{width:100%;font-size:22px;letter-spacing:6px;text-align:center;padding:12px;border:none;border-radius:10px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:#fff;color:#222;padding:10px 14px;border:none;border-radius:10px;cursor:pointer;font-weight:600}
+  .btn.secondary{background:rgba(255,255,255,.85)}
+  .row{display:grid;gap:10px}
+  .panel{padding:14px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:860px){.grid{grid-template-columns:1fr}}
+  .card-title{font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+  textarea,input[type="text"],input[type="date"]{width:100%;border:none;border-radius:10px;padding:10px;font-size:15px}
+  .list{display:grid;gap:8px;max-height:320px;overflow:auto}
+  .item{background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:10px;display:flex;gap:10px;align-items:flex-start}
+  .item .text{flex:1}.item .meta{opacity:.85;font-size:12px;margin-top:4px}
+  .icon{cursor:pointer;user-select:none}
+  .pill{display:inline-block;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:4px 8px;margin:2px}
+  .tools{display:flex;flex-wrap:wrap;gap:8px}.foot{opacity:.9;font-size:12px;margin-top:8px}.muted{opacity:.85}
+  details>summary{cursor:pointer;list-style:none}
+</style>
+</head>
+<body>
+  <div class="login" id="login">
+    <div class="card glass">
+      <h2 class="card-title">🔐 Admin toegang</h2>
+      <p class="muted">Voer de 4-cijferige PIN in om te beheren.</p>
+      <div class="row">
+        <input class="pin-input" id="pin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="••••"/>
+        <button class="btn" id="enterBtn">Inloggen</button>
+        <div id="loginMsg" class="muted"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <header>
+      <h1>Startpagina – Beheer</h1>
+      <p class="muted">Beheer mededelingen, weerlocatie, 40‑minutendagen en thema.</p>
+    </header>
+
+    <section class="grid">
+      <div class="panel glass">
+        <div class="card-title">📄 Nieuwe mededeling</div>
+        <textarea rows="3" id="msgText" placeholder="Typ hier je mededeling (post-it stijl)"></textarea>
+        <div class="tools" style="margin-top:8px">
+          <button class="btn" id="addMsg">Toevoegen</button>
+          <button class="btn secondary" id="exportMsgs">Exporteer mededeling.json</button>
+          <label class="btn secondary" for="importMsgs">Importeer…</label>
+          <input id="importMsgs" type="file" accept="application/json" style="display:none"/>
+        </div>
+        <div class="foot">De startpagina toont automatisch de 3 nieuwste; oudere komen in het archief (inklapbaar).</div>
+      </div>
+
+      <div class="panel glass">
+        <div class="card-title">📚 Mededelingenoverzicht</div>
+        <div class="muted">Top 3 (nieuwste eerst)</div>
+        <div class="list" id="top3"></div>
+        <details style="margin-top:10px"><summary>Archief in-/uitklappen</summary>
+          <div class="list" id="archiveList" style="margin-top:8px"></div>
+        </details>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="panel glass">
+        <div class="card-title">🌤️ Weerlocatie</div>
+        <input type="text" id="weatherPlace" placeholder="Bijv. Meppel, Zwolle, Amsterdam"/>
+        <div class="tools" style="margin-top:8px">
+          <button class="btn" id="savePlace">Opslaan</button>
+          <button class="btn secondary" id="testPlace">Test (Open‑Meteo)</button>
+          <button class="btn secondary" id="exportWeer">Exporteer weer_config.json</button>
+          <label class="btn secondary" for="importWeer">Importeer…</label>
+          <input id="importWeer" type="file" accept="application/json" style="display:none"/>
+        </div>
+        <div id="weerPreview" class="foot"></div>
+      </div>
+
+      <div class="panel glass">
+        <div class="card-title">⏱️ 40‑minutenrooster – instellingen</div>
+        <div class="muted">Weekdagen (automatisch 40‑min):</div>
+        <div id="weekdayBox" style="margin:6px 0 10px"></div>
+        <div class="muted">Specifieke datums:</div>
+        <div class="tools" style="margin:6px 0">
+          <input type="date" id="addDate"/>
+          <button class="btn" id="addDateBtn">Toevoegen</button>
+        </div>
+        <div id="dateList" class="list" style="max-height:200px"></div>
+        <div class="tools" style="margin-top:8px">
+          <button class="btn secondary" id="exportRooster">Exporteer rooster_config.json</button>
+          <label class="btn secondary" for="importRooster">Importeer…</label>
+          <input id="importRooster" type="file" accept="application/json" style="display:none"/>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="panel glass">
+        <div class="card-title">🎨 Thema‑instellingen</div>
+        <div class="row">
+          <label class="pill"><input type="radio" name="theme" value="system" id="themeSystem"> Systeem (volg OS)</label>
+          <label class="pill"><input type="radio" name="theme" value="light" id="themeLight"> Altijd licht</label>
+          <label class="pill"><input type="radio" name="theme" value="dark" id="themeDark"> Altijd donker</label>
+        </div>
+        <div class="tools" style="margin-top:8px">
+          <button class="btn" id="saveTheme">Opslaan</button>
+          <button class="btn secondary" id="exportTheme">Exporteer theme_config.json</button>
+          <label class="btn secondary" for="importTheme">Importeer…</label>
+          <input id="importTheme" type="file" accept="application/json" style="display:none"/>
+        </div>
+        <div class="foot">De startpagina leest eerst <code>localStorage.theme</code>, anders <code>theme_config.json</code>, anders <em>systeem</em>.</div>
+      </div>
+    </section>
+
+    <footer class="muted">Tip: plaats de geëxporteerde JSON‑bestanden in dezelfde map als je startpagina.</footer>
+  </div>
+
+<script>
+const PIN='4321';const login=document.getElementById('login');document.getElementById('enterBtn').addEventListener('click',checkPin);document.getElementById('pin').addEventListener('keypress',e=>{if(e.key==='Enter') checkPin()});function checkPin(){const v=document.getElementById('pin').value.trim();if(v===PIN){login.style.display='none';init()}else{document.getElementById('loginMsg').textContent='Onjuiste PIN'}}
+function getMsgs(){try{return JSON.parse(localStorage.getItem('mededelingList')||'[]')}catch{return[]}}function setMsgs(list){localStorage.setItem('mededelingList',JSON.stringify(list||[]))}
+function getRooster(){try{return JSON.parse(localStorage.getItem('roosterConfig')||'{}')}catch{return{}}}function setRooster(cfg){localStorage.setItem('roosterConfig',JSON.stringify(cfg||{}))}
+function getWeer(){return {location:(localStorage.getItem('weatherLocation')||'Meppel')}}function setWeer(obj){if(obj&&obj.location) localStorage.setItem('weatherLocation',obj.location)}
+function getThemeLs(){return (localStorage.getItem('theme')||'system')}function setThemeLs(v){localStorage.setItem('theme',v)}
+function nlDateTime(ts){try{return new Date(ts).toLocaleString('nl-NL',{weekday:'short',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}catch{return ''}}
+function el(t,c,x){const e=document.createElement(t);if(c) e.className=c;if(x) e.textContent=x;return e}
+function downloadJson(name,data){const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(url);a.remove()},0)}
+function renderMsgs(){const all=getMsgs().sort((a,b)=>new Date(b.ts||0)-new Date(a.ts||0));const t3=document.getElementById('top3');const arch=document.getElementById('archiveList');t3.innerHTML='';arch.innerHTML='';all.slice(0,3).forEach(m=>t3.appendChild(msgCard(m)));all.slice(3).forEach(m=>arch.appendChild(msgCard(m)))}
+function msgCard(m){const li=el('div','item');const t=el('div','text',m.text||'');const meta=el('div','meta',m.ts?nlDateTime(m.ts):'');const del=el('span','icon','🗑️');del.title='Verwijderen';del.addEventListener('click',()=>{if(confirm('Verwijderen?')){const list=getMsgs();const idx=list.findIndex(x=>x.ts===m.ts&&x.text===m.text);if(idx>-1){list.splice(idx,1);setMsgs(list);renderMsgs()}}});t.appendChild(meta);li.appendChild(t);li.appendChild(del);return li}
+async function testWeather(place){const out=document.getElementById('weerPreview');out.textContent='Bezig met testen…';try{const gUrl=`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(place)}&count=1&language=nl&format=json`;const gRes=await fetch(gUrl);if(!gRes.ok) throw new Error('Geocoding mislukt');const g=await gRes.json();if(!g.results||!g.results.length) throw new Error('Geen plaats gevonden');const {latitude,longitude,name}=g.results[0];const wUrl=`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code&hourly=precipitation_probability&timezone=auto&language=nl`;const wRes=await fetch(wUrl);if(!wRes.ok) throw new Error('Weer mislukt');const w=await wRes.json();const cur=w.current;if(!cur) throw new Error('Geen current weather');const code=Number(cur.weather_code);const desc=(code===0?'Helder':[1].includes(code)?'Overwegend helder':[2].includes(code)?'Gedeeltelijk bewolkt':[3].includes(code)?'Bewolkt':[45,48].includes(code)?'Mist':[51,53,55].includes(code)?'Motregen':[56,57].includes(code)?'Ijzel/motregen':[61,63,65].includes(code)?'Regen':[66,67].includes(code)?'Ijzel':[71,73,75].includes(code)?'Sneeuw':[77].includes(code)?'Sneeuwkorrels':[80,81,82].includes(code)?'Buien':[85,86].includes(code)?'Sneeuwbuien':[95,96,99].includes(code)?'Onweer':'Onbekend');const t=Math.round(cur.temperature_2m),wind=Math.round(cur.wind_speed_10m),hum=Math.round(cur.relative_humidity_2m);let next='-',avg2='-';try{const times=w.hourly.time;const probs=w.hourly.precipitation_probability;const now=Date.now();let idx=times.findIndex(x=>new Date(x).getTime()>now);if(idx<0) idx=probs.length-1;const n1=probs[idx];const n2=probs[idx+1];next=(n1!=null? n1+'%':'-');avg2=(n1!=null&&n2!=null? Math.round((n1+n2)/2)+'%' : (n1!=null? n1+'%':'-'))}catch{}out.textContent=`${name||place}: ${t}°C, ${desc}
+Wind ${wind} km/u, Vocht ${hum}%
+☔ Volgend uur: ${next}
+☔ Komende 2 uur: ${avg2}`}
+catch(e){out.textContent='Kon niet ophalen.'}}
+const wdMap=[["Mon","Ma"],["Tue","Di"],["Wed","Wo"],["Thu","Do"],["Fri","Vr"],["Sat","Za"],["Sun","Zo"]];
+function renderWeekdays(cfg){const box=document.getElementById('weekdayBox');box.innerHTML='';wdMap.forEach(([key,label])=>{const w=el('label','pill');const cb=el('input');cb.type='checkbox';cb.checked=(cfg.fortyMinWeekdays||[]).includes(key);cb.addEventListener('change',()=>{const c=getRooster();const set=new Set(c.fortyMinWeekdays||[]);if(cb.checked) set.add(key); else set.delete(key);c.fortyMinWeekdays=[...set];setRooster(c);renderWeekdays(c)});w.append(cb);w.append(' '+label);box.appendChild(w)})}
+function renderDates(cfg){const list=document.getElementById('dateList');list.innerHTML='';(cfg.fortyMinDates||[]).sort().forEach(d=>{const row=el('div','item');row.appendChild(el('div','text',d));const del=el('span','icon','🗑️');del.addEventListener('click',()=>{if(confirm('Datum verwijderen?')){const c=getRooster();c.fortyMinDates=(c.fortyMinDates||[]).filter(x=>x!==d);setRooster(c);renderDates(c)}});row.appendChild(del);list.appendChild(row)})}
+async function getThemeCfg(){try{const r=await fetch('theme_config.json?ts='+Date.now());if(r.ok) return await r.json()}catch{}return {theme:'system'}}
+function syncThemeRadios(v){document.getElementById('themeSystem').checked=(v==='system');document.getElementById('themeLight').checked=(v==='light');document.getElementById('themeDark').checked=(v==='dark')}
+function init(){document.getElementById('addMsg').addEventListener('click',()=>{const v=document.getElementById('msgText').value.trim();if(!v) return;const list=getMsgs();list.unshift({text:v,ts:new Date().toISOString()});setMsgs(list);document.getElementById('msgText').value='';renderMsgs();alert('Mededeling toegevoegd. Exporteer om het JSON-bestand bij te werken.')});document.getElementById('exportMsgs').addEventListener('click',()=>{downloadJson('mededeling.json',{messages:getMsgs()})});document.getElementById('importMsgs').addEventListener('change',async e=>{const f=e.target.files[0];if(!f) return;const txt=await f.text();try{const j=JSON.parse(txt);let arr=[];if(Array.isArray(j.messages)) arr=j.messages; else if(j.message) arr=[{text:j.message,ts:new Date().toISOString()}];setMsgs(arr);renderMsgs();alert('Mededelingen geïmporteerd.')}catch{alert('Ongeldig JSON.')}e.target.value='' });
+const placeInput=document.getElementById('weatherPlace');placeInput.value=getWeer().location||'Meppel';document.getElementById('savePlace').addEventListener('click',()=>{setWeer({location:placeInput.value.trim()||'Meppel'});alert('Weerlocatie opgeslagen. Exporteer voor een JSON-bestand.')});document.getElementById('testPlace').addEventListener('click',()=>{const p=placeInput.value.trim()||'Meppel';testWeather(p)});document.getElementById('exportWeer').addEventListener('click',()=>{downloadJson('weer_config.json',getWeer())});document.getElementById('importWeer').addEventListener('change',async e=>{const f=e.target.files[0];if(!f) return;try{const j=JSON.parse(await f.text());if(j.location){setWeer(j);placeInput.value=j.location;alert('Weerconfig geïmporteerd.')}else alert('JSON bevat geen "location".')}catch{alert('Ongeldig JSON.')}e.target.value='' });
+const def={mode:'auto',fortyMinWeekdays:[],fortyMinDates:[]};const cfg={...def,...getRooster()};setRooster(cfg);renderWeekdays(cfg);renderDates(cfg);document.getElementById('addDateBtn').addEventListener('click',()=>{const v=document.getElementById('addDate').value;if(!v) return;const c=getRooster();const set=new Set(c.fortyMinDates||[]);set.add(v);c.fortyMinDates=[...set];setRooster(c);renderDates(c)});document.getElementById('exportRooster').addEventListener('click',()=>{const out={mode:'auto',fortyMinWeekdays:getRooster().fortyMinWeekdays||[],fortyMinDates:getRooster().fortyMinDates||[]};downloadJson('rooster_config.json',out)});document.getElementById('importRooster').addEventListener('change',async e=>{const f=e.target.files[0];if(!f) return;try{const j=JSON.parse(await f.text());const out={mode:(j.mode||'auto'),fortyMinWeekdays:(j.fortyMinWeekdays||[]),fortyMinDates:(j.fortyMinDates||[])};setRooster(out);renderWeekdays(out);renderDates(out);alert('Roosterconfig geïmporteerd.')}catch{alert('Ongeldig JSON.')}e.target.value='' });
+(async()=>{const cfg=await getThemeCfg();const v=localStorage.getItem('theme')||cfg.theme||'system';syncThemeRadios(v)})();document.getElementById('saveTheme').addEventListener('click',()=>{const v=document.getElementById('themeDark').checked?'dark':document.getElementById('themeLight').checked?'light':'system';setThemeLs(v);alert('Thema opgeslagen. Exporteer om theme_config.json te schrijven.')});document.getElementById('exportTheme').addEventListener('click',()=>{const v=getThemeLs();downloadJson('theme_config.json',{theme:v})});document.getElementById('importTheme').addEventListener('change',async e=>{const f=e.target.files[0];if(!f) return;try{const j=JSON.parse(await f.text());if(['system','light','dark'].includes(j.theme)){setThemeLs(j.theme);syncThemeRadios(j.theme);alert('Theme-config geïmporteerd.')}else alert('JSON bevat ongeldige "theme".')}catch{alert('Ongeldig JSON.')}e.target.value='' });
+renderMsgs()}
+</script>
+</body>
+</html>
